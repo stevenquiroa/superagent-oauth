@@ -54,12 +54,26 @@ module.exports = function (superagent) {
    */
 
   Request.prototype.signOAuth = function () {
+    var extra_params = this._oauth_query;
+    if ('application/x-www-form-urlencoded' == this.getHeader('content-type') && this.isObject(this._data)) {
+      if(extra_params) {
+        // merge
+        var keys = Object.keys(this._data), key;
+        for (var i = 0; i < keys.length; i++) {
+          key = keys[i];
+          extra_params[key] = this._data[key];
+        }
+      } else {
+        extra_params = this._data;
+      }
+    }
+
     var params = this.oa._prepareParameters(
         this.token
       , this.secret
       , this.method
       , this.url
-      , this._data || this._oauth_query // XXX: what if there's query and body? merge?
+      , this.extra_params
     );
 
     var header = this.oa._isEcho
